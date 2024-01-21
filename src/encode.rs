@@ -11,14 +11,14 @@ use crate::{err::BlkidErr, Result};
 // Shared code for encoding methods
 fn string_shared<F>(string: &str, closure: F) -> Result<String>
 where
-    F: Fn(&CString, &mut Vec<u8>) -> c_int,
+    F: Fn(&CString, &mut Vec<u8>) -> Result<c_int>,
 {
     // Per the documentation, the maximum buffer is 4 times
     // the length of the string.
     let mut buffer = vec![0u8; string.len() * 4];
 
     let cstring = CString::new(string)?;
-    if closure(&cstring, &mut buffer) != 0 {
+    if closure(&cstring, &mut buffer)? != 0 {
         return Err(BlkidErr::InvalidConv);
     }
 
@@ -34,11 +34,11 @@ where
 /// Encode potentially unsafe characters in the given `string` parameter.
 pub fn encode_string(string: &str) -> Result<String> {
     string_shared(string, |cstring, buffer| unsafe {
-        libblkid_rs_sys::blkid_encode_string(
+        Ok(libblkid_rs_sys::blkid_encode_string(
             cstring.as_ptr(),
             buffer.as_mut_ptr() as *mut c_char,
-            buffer.len(),
-        )
+            buffer.len().try_into()?,
+        ))
     })
 }
 
@@ -46,11 +46,11 @@ pub fn encode_string(string: &str) -> Result<String> {
 /// become `_`.
 pub fn safe_string(string: &str) -> Result<String> {
     string_shared(string, |cstring, buffer| unsafe {
-        libblkid_rs_sys::blkid_safe_string(
+        Ok(libblkid_rs_sys::blkid_safe_string(
             cstring.as_ptr(),
             buffer.as_mut_ptr() as *mut c_char,
-            buffer.len(),
-        )
+            buffer.len().try_into()?,
+        ))
     })
 }
 

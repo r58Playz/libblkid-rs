@@ -24,7 +24,8 @@ from_err!(
     std::ffi::FromBytesWithNulError => BytesWithNull,
     std::io::Error => IO,
     std::str::Utf8Error => UTF8,
-    std::string::FromUtf8Error => FromUTF8
+    std::string::FromUtf8Error => FromUTF8,
+    std::num::TryFromIntError => FromInt
 );
 
 /// Re-export of `Result` with an error type of `BlkidErr`
@@ -47,6 +48,8 @@ pub enum BlkidErr {
     UTF8(std::str::Utf8Error),
     /// UTF8 error
     FromUTF8(std::string::FromUtf8Error),
+    /// Int conversion error
+    FromInt(std::num::TryFromIntError),
     /// IO error
     IO(std::io::Error),
     /// UUID error
@@ -69,6 +72,7 @@ impl Display for BlkidErr {
             BlkidErr::InvalidConv => write!(f, "The requested conversion was unsuccessful"),
             BlkidErr::UTF8(ref e) => write!(f, "UTF8 error: {e}"),
             BlkidErr::FromUTF8(ref e) => write!(f, "UTF8 conversion error: {e}"),
+            BlkidErr::FromInt(ref e) => write!(f, "Int conversion error: {e}"),
             BlkidErr::IO(ref e) => write!(f, "An IO error occurred: {e}"),
             BlkidErr::Uuid(ref e) => write!(f, "A UUID error occurred: {e}"),
             BlkidErr::Other(ref s) => write!(f, "{s}"),

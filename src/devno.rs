@@ -51,7 +51,7 @@ impl BlkidDevno {
             libblkid_rs_sys::blkid_devno_to_wholedisk(
                 self.0,
                 buf.as_mut_ptr() as *mut libc::c_char,
-                buf.len(),
+                buf.len().try_into()?,
                 &mut wholedisk_devno as *mut _,
             )
         })?;

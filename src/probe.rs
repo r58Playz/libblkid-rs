@@ -268,7 +268,7 @@ impl BlkidProbe {
 
         let mut name: *const libc::c_char = ptr::null();
         let mut data: *const libc::c_char = ptr::null();
-        let mut size: usize = 0;
+        let mut size: u64 = 0;
         errno!(unsafe {
             libblkid_rs_sys::blkid_probe_get_value(
                 self.0,
@@ -279,7 +279,7 @@ impl BlkidProbe {
             )
         })?;
         let name = str_ptr_to_owned!(name);
-        let data = str_ptr_with_size_to_owned!(data, size);
+        let data = str_ptr_with_size_to_owned!(data, size.try_into()?);
         Ok((name, data))
     }
 
@@ -288,7 +288,7 @@ impl BlkidProbe {
         let name_cstring = CString::new(name)?;
 
         let mut data: *const libc::c_char = ptr::null();
-        let mut size: usize = 0;
+        let mut size: u64 = 0;
         errno!(unsafe {
             libblkid_rs_sys::blkid_probe_lookup_value(
                 self.0,
@@ -297,7 +297,7 @@ impl BlkidProbe {
                 &mut size as *mut _,
             )
         })?;
-        let data = str_ptr_with_size_to_owned!(data, size);
+        let data = str_ptr_with_size_to_owned!(data, size.try_into()?);
         Ok(data)
     }
 
@@ -351,7 +351,7 @@ pub fn get_superblock_name(
     let mut flags: libc::c_int = 0;
     errno!(unsafe {
         libblkid_rs_sys::blkid_superblocks_get_name(
-            index,
+            index.try_into()?,
             if get_name {
                 &mut name_ptr as *mut _
             } else {
@@ -386,7 +386,7 @@ pub fn is_known_partition_type(type_: &str) -> bool {
 /// of the library.
 pub fn get_partition_name(index: usize) -> Result<&'static str> {
     let mut name_ptr: *const libc::c_char = ptr::null();
-    errno!(unsafe { libblkid_rs_sys::blkid_partitions_get_name(index, &mut name_ptr as *mut _) })?;
+    errno!(unsafe { libblkid_rs_sys::blkid_partitions_get_name(index.try_into()?, &mut name_ptr as *mut _) })?;
     let name = unsafe { CStr::from_ptr(name_ptr) }.to_str()?;
     Ok(name)
 }

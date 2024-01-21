@@ -7,7 +7,7 @@ fn main() {
 
     let bindings = Builder::default()
         .header("header.h")
-        .size_t_is_usize(true)
+        .size_t_is_usize(cfg!(target_arch = "aarch64"))
         .generate()
         .expect("Unable to generate bindings");
 
